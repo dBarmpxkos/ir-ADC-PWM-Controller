@@ -1,0 +1,13 @@
+const long int VolDOWN = 0xFD00FF;
+const long int VolUP = 0xFD40BF;
+const long int Play = 0xFD807F;
+const long int Back = 0xFD708F;
+const long int NUM1 = 0xFD08F7;
+const long int NUM2 = 0xFD8877;
+const long int NUM3 = 0xFD48B7;
+const long int NUM4 = 0xFD28D7;
+const long int NUM5 = 0xFDA857;
+const long int NUM6 = 0xFD6897;
+const long int NUM7 = 0xFD18E7;
+const long int NUM8 = 0xFD9867;
+const long int NUM9 = 0xFD58A7;
