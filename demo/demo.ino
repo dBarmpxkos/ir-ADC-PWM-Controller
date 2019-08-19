@@ -4,7 +4,8 @@
 #define PWM_PIN 5
 #define RECV_PIN 6
 
-byte counterOld, counterNew;
+byte counterOld = 0;
+byte counterNew = 0;
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
@@ -14,7 +15,12 @@ void setup()
   irrecv.enableIRIn(); // Start the receiver
 
   pinMode(PWM_PIN, OUTPUT);
-  digitalWrite(PWM_PIN, LOW);
+  for (int i=0; i<=254; i++)
+  {
+    analogWrite(PWM_PIN, i); 
+    delay(5);
+  }
+  counterOld = 254;
 }
 
 void loop() 
@@ -25,81 +31,136 @@ void loop()
     match_code_with_buttons();
     irrecv.resume(); // Receive the next value
   }
-  delay(100);
+  delay(50);
 }
 
 void receive_cmd(int times, int delayHIGH, int delayLOW)
 {
   for (int i=0; i<times; i++)
   {
-    digitalWrite(PWM_PIN, HIGH);
+    for (int j=0; j<=254; j++){
+      analogWrite(PWM_PIN, j);
+      delay(1);
+    }
     delay(delayHIGH);
-    digitalWrite(PWM_PIN, LOW);
+    for (int j=254; j>=0; j--){
+    analogWrite(PWM_PIN, j);
+    delay(1);
+    } digitalWrite(PWM_PIN, LOW);
     delay(delayLOW);
   }
 
 }
+
+void linear_decrease()
+{
+    for (int i=counterOld; i>=counterNew; i--)
+    {
+      analogWrite(PWM_PIN, i); 
+      delay(5);
+    }
+    counterOld = counterNew;
+
+}
+
+void linear_increase()
+{
+    for (int i=counterOld; i<=counterNew; i++)
+    {
+      analogWrite(PWM_PIN, i); 
+      delay(5);
+    }
+    counterOld = counterNew;
+}
+
+void linear_dim()
+{
+  if (counterNew > counterOld) linear_increase();
+  if (counterNew < counterOld) linear_decrease();
+}
+
 void match_code_with_buttons()
 {
 
   switch(results.value)
   {
 
-    case VolDOWN:
-    {
+    case VolDOWN:{
       counterNew -= 22;
-      if (counterNew < 21)
-        counterNew = 0;
-
-      for (int i=counterOld; i>=counterNew; i--){
-        analogWrite(PWM_PIN, i); 
-        delay(20);
-      }
-      counterOld = counterNew;
-      break;
-    } 
-    
-    case VolUP:
-    {
-     counterNew += 22;
-     if (counterNew > 242)
-        counterNew = 255;
-
-      for (int i=counterOld; i<=counterNew; i++){
-        analogWrite(PWM_PIN, i); 
-        delay(20);
-      }
-      counterOld = counterNew;
+      if (counterNew < 21) counterNew = 0;
+      linear_dim();
       break;
     } 
 
-    case Play:
-    {
-      for (int i=0; i<200; i++){
+    case VolUP:{
+      counterNew += 22;
+      if (counterNew > 242) counterNew = 255;
+      linear_dim();
+      break;
+    } 
+
+    case Play:{
+      for (int i=0; i<10000; i+=10) {
         receive_cmd(2, i*10, i*10);
       }
+      break;
+    }
+    
+    case Back:{
+      counterNew = 0;
+      linear_dim();
+      break;
+    }
 
+    case NUM1:{
+      counterNew = 25;
+      linear_dim();
+      break;
+    }
+    case NUM2:{
+      counterNew = 50;
+      linear_dim();
+      break;
+    }
+    case NUM3:{
+      counterNew = 75;
+      linear_dim();
+      break;
+    }
+    case NUM4:{
+      counterNew = 100;
+      linear_dim();
+      break;
+    }
+    case NUM5:{
+      counterNew = 125;
+      linear_dim();
+      break;
+    }
+    case NUM6:{
+      counterNew = 150;
+      linear_dim();
+      break;
+    }
+    case NUM7:{
+      counterNew = 175;
+      linear_dim();
+      break;
+    }
+    case NUM8:{
+      counterNew = 200;
+      linear_dim();
+      break;
+    }
+    case NUM9:{
+      counterNew = 255;
+      linear_dim();
       break;
     }
 
     default: 
       Serial.println("BLEAH");
+
   }
 
 }
-
-/* codes:
-Vol-: FD00FF
-Vol+: FD40BF
-Play: FD807F
-Back: FD708F
-1: FD08F7
-2: FD8877
-3: FD48B7
-4: FD28D7
-5: LFDA857
-6: FD6897
-7: FD18E7
-8: FD9867
-9: FD58A7
-*/
